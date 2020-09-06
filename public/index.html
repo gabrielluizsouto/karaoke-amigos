@@ -1,225 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Um Breque Show</title>
+    <title> alou </title>
     <link rel="stylesheet" type="text/css" href="public/css/style.css">
-    <script type="text/javascript" src="public/js/methods.js"></script>
+    <script type="text/javascript" src="public/js/script.js"></script>
 
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-TCTF3BC');</script>
-    <!-- End Google Tag Manager -->
-
-    <script data-ad-client="ca-pub-4240766481970068" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-
-    <!-- Compiled and minified CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-
-    <!-- Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-    <!-- Primary Meta Tags -->
-    <meta name="title" content="Um Breque Show">
-    <meta name="description" content="Site para apreciar e compartilhar breques de baterias.">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://umbrequeshow.herokuapp.com/">
-    <meta property="og:title" content="Um Breque Show">
-    <meta property="og:description" content="Site para apreciar e compartilhar breques de baterias.">
-    <meta property="og:image" content="">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://umbrequeshow.herokuapp.com/">
-    <meta property="twitter:title" content="Um Breque Show">
-    <meta property="twitter:description" content="Site para apreciar e compartilhar breques de baterias.">
-    <meta property="twitter:image" content="">
-
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io()
+    </script>
 </head>
+
 <body>
     <header>
         <menu>
-            <!-- <div class="nav-bar">   
-                <div class="menu-geral">        
-                    <a href="/">Home</a>        
-                    <a href="/meus-breques">Meus enviados</a>        
-                    <a href="/favoritos">Meus favoritos</a>
-                </div>    
-                <div class="menu-login">
-                    <a href="/user">Logar</a>        
-                    <a onclick="userLogout()" href="">Deslogar</a>
-                </div>
-            </div>
-            <script>menuOptionsHide()</script> -->
+
         </menu>
-        <h3>Um Breque Show</h3>
-        <p>Aprecie e compartilhe breques</p>
+
     </header>
     <main>
-        <div class="row video-content-row">
-            <div class="col s12 now-playing-container">
-                <p class="">Agora tocando a playlist: </p>
-                <p class="now-playing-category-name "></p>
-                <p class=""> Video: </p>
-                <p class="now-playing-category-videos-length"></p>
-            </div>
+        <div>
+            <h3>Home</h3>
+            <button id="start">START</button>
+            <button id="stop">STOP</button>
+            <div id="msgs"></div>
+            <div id="player-time"></div>
+            <script>
+                socket.on('connect', ()=>{
+                    window.document.getElementById('msgs').append('connected with id: '+socket.id+'\n');
+                    socket.emit('msg', 'estou conectado '+socket.id)
+                })
+                socket.on('msg', (msg) => {
+                    var connected_msg = document.createElement('p');
+                    connected_msg.innerText = msg;
+                    window.document.getElementById('msgs').appendChild(connected_msg);
+                });
+                socket.on('play-video', (msg) => {
+                    if(player) {
+                        player.playVideo();
+                    }
+                });
 
-            <div class="col s12 video-container">
+                //player-time
+                var player_time = window.document.getElementById('player-time');
 
-                <a class="botao-voltar col m2 hide-on-small-only waves-effect waves-light btn-large indigo" onclick="updatePlaylistPointer('previous')"><i class="material-icons large">arrow_back</i></a>
-                <div class="mobile-buttons">
-                    <a class="botao-voltar col s6 hide-on-med-and-up waves-effect waves-light btn-large indigo" onclick="updatePlaylistPointer('previous')"><i class="material-icons medium">arrow_back</i></a>
-                    <a class="botao-avancar col s6 hide-on-med-and-up waves-effect waves-light btn-large indigo" onclick="updatePlaylistPointer('next')"><i class="material-icons medium">arrow_forward</i></a>
-                </div>
+                //audio capture
+                var constraints = { audio: true };
+                navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
+                    var mediaRecorder = new MediaRecorder(mediaStream);
+                
+                    mediaRecorder.onstart = function(e) {
+                        this.chunks = [];
+                    };
+                    mediaRecorder.ondataavailable = function(e) {
+                        this.chunks.push(e.data);
+                    };
+                    mediaRecorder.onstop = function(e) {
+                        var blob = new Blob(this.chunks, { 'type' : 'audio/ogg; codecs=opus' });
+                        socket.emit('radio', blob);
+                    };
 
-                <div class="col s12 m8 video-content">
-                    <div class="iframe-container">
-                        <script>
-                                var playlist = getPlaylistInBrowser();
-                                var playlistPointer = getPlaylistPointer();
-                                playlist = JSON.parse('['+playlist+']');
-                                const playingNow = playlist[playlistPointer];
-                                loadVideo(playingNow);
-                        </script>
-                    </div>
-                </div>
-                <a class="botao-avancar col m2 hide-on-small-only center waves-effect waves-light btn-large indigo" onclick="updatePlaylistPointer('next')"><i class="material-icons large">arrow_forward</i></a>
+                    // Start recording
+                    var interval;
+                    var start_button = document.getElementById('start');
+                    start_button.addEventListener('click', ()=>{
+                        mediaRecorder.start();
+                        // Stop recording after 5 seconds and broadcast it to server
+                        interval = setInterval(function() {
+                            mediaRecorder.stop();
+                            mediaRecorder.start();
 
-            </div>
+                            if(player){
+                                player_time.innerText = player.getCurrentTime();
+                            }
+                        }, 1000);
 
-            <div class="col s12 avaliation-container ">
-                <div class="like-container col s12 center-align">
-                    <a class="waves-effect btn-large like-button" alt="curtir o video" onclick="likeVideo(videoData.brequeId)"><i class="material-icons medium like-button">thumb_up</i></a>
-                    <a class="waves-effect btn-large star-button"><i class="material-icons medium star-button">star</i></a>
-                    <a class="waves-effect btn-large like-button red" alt="Denunciar vídeo" onclick="denounceVideo(videoData.brequeId)"><i class="material-icons medium like-button">block</i></a>
+                        //play youtube video
+                        if(player) {
+                            player.playVideo();
+                            socket.emit('video-started');
+                        }
+                    });
 
-                </div>
-            </div>
+                    var stop_button = document.getElementById('stop');
+                    stop_button.addEventListener('click', ()=>{
+                        clearInterval(interval);
+                        mediaRecorder.stop();
+                    })         
+                    
+                    console.log(navigator.mediaDevices.getUserMedia)
+                });
 
-            <div class="col s12 share-container ">
-                <div class="like-container col s12 center-align">
-                    <p>Compartilhe um vídeo de breque que você gosta.</p>
-                    <a class="waves-effect btn-large indigo darken-1" onclick="sendVideo()"><i class="material-icons medium">cloud_upload</i></a>
-                </div>
-            </div>
+                // When the client receives a voice message it will play the sound
+                socket.on('voice', function(arrayBuffer) {
+                    var blob = new Blob([arrayBuffer], { 'type' : 'audio/ogg; codecs=opus' });
+                    var audio = document.createElement('audio');
+                    audio.src = window.URL.createObjectURL(blob);
+                    audio.play();
+                });
 
-        </div>
-
-        <!-- Modal Structure -->
-        <div id="modal-send-video" class="modal">
-            <div class="modal-content">
-                <h4>Mandeu vídeo</h4>
-                <p>Compartilhe um breque com a comunidade.</p>
-
-                <div class="row">
-                    <form class="col s12">
-
-                        <div class="row">
-                            <div class="input-field col s12">
-                                <input id="video-title" type="text" >
-                                <label for="video-title">Título do video</label>
-                            </div>
-                        </div>
-                        <div class="row"></div>
-                            <div class="input-field col s12">
-                                    <input id="youtubeUrl" type="text" placeholder="https://www.youtube.com/watch?v=UBw6RS9m_8k">
-                                    <label for="youtubeUrl">Youtube video link</label>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="input-field col s6">
-                                <input id="startTime" type="text" placeholder="mm:ss">
-                                <label for="startTime">Tempo de início</label>
-                            </div>
-                            <div class="input-field col s6">
-                                <input id="endTime" type="text" placeholder="mm:ss">
-                                <label for="endTime">Tempo de término</label>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="input-field col s12">
-                                <input placeholder="Separe as categorias do vídeo por vírgulas." id="categories" type="text">
-                                <label for="categories">Categorias</label>
-                                <p>Exemplos de categorias:  solo, repinique, beija-flor, carnaval, 2017</p>
-                            </div>
-                        </div>
-                        
-                        <button class="waves-effect btn-large indigo darken-1" onclick="createNewBreque()">Enviar</button>
-                        <div class="modal-footer">
-                            <a href="#!" class="waves-effect waves-green btn-flat modal-close">Fechar</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal Structure -->
-        <div id="modal-denounce" class="modal">
-            <div class="modal-content">
-            <h4>Vídeo Denunciado</h4>
-            <p>Obrigado por denunciar o vídeo. Avaliaremos se ele deve permanecer no site. <br>Sua colaboração é muito importante para mantermos a boa experiência de quem curte uma batucada.</p>
-            </div>
-            <div class="modal-footer">
-            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Ok</a>
-            </div>
-        </div>
-
-        <!-- Modal Structure -->
-        <div id="modal-like" class="modal">
-            <div class="modal-content">
-            <h4>Vídeo Curtido</h4>
-            <i class="material-icons medium like-button large">thumb_up</i>
-            </div>
-            <div class="modal-footer">
-            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Ok</a>
-            </div>
-        </div>
-
-        <div class="row categories-container blue lighten-1">
-            <div class="col s12 center-align"><h5>Categorias</h5><p><i>Selecione uma playlist</i></p></div>
-            <div class="col s12 center-align"><a onclick="createNewPlaylist('geral')" href="#" class="black">#geral</a></div>
-            <div class="col s12 center-align categories-list">
-                <div class="row categories-list-row">
-                    <div class="categories-list-column"></div>
-                    <div class="categories-list-column"></div>
-                    <div class="categories-list-column"></div>
-                </div>
-                <script>
-                    var categoriesList = getCategoriesList();
-                    createCategoriesList(categoriesList);
-                </script>
-            </div>
+            </script>
+            <div id="player"></div>
+            <script>
+                // 2. This code loads the IFrame Player API code asynchronously.
+                var tag = document.createElement('script');
+          
+                tag.src = "https://www.youtube.com/iframe_api";
+                var firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+          
+                // 3. This function creates an <iframe> (and YouTube player)
+                //    after the API code downloads.
+                var player;
+                function onYouTubeIframeAPIReady() {
+                  player = new YT.Player('player', {
+                    height: '360',
+                    width: '640',
+                    videoId: '12szSsIKD0k',
+                    events: {
+                    }
+                  });
+                }
+          
+                // 4. The API will call this function when the video player is ready.
+                function onPlayerReady(event) {
+                  event.target.playVideo();
+                }
+          
+                // 5. The API calls this function when the player's state changes.
+                //    The function indicates that when playing a video (state=1),
+                //    the player should play for six seconds and then stop.
+                var done = false;
+                function onPlayerStateChange(event) {
+                  if (event.data == YT.PlayerState.PLAYING && !done) {
+                    setTimeout(stopVideo, 6000);
+                    done = true;
+                  }
+                }
+                function stopVideo() {
+                  player.stopVideo();
+                }
+              </script>
         </div>
 
     </main>
-    <footer>
+    <!-- <footer>
         <div class="col s12 info-container blue lighten-3">
             <div class="col s12 center-align">
-                <div class="col s12 center-align">            
-                    <p>Feito por Gabriel Souto © 2020</p>            
-                    <a href="mailto:gabrielluizferraz@gmail.com">gabrielluizferraz@gmail.com</a>        
-                        <ul>                
+                <div class="col s12 center-align">
+                    <p>Feito por Gabriel Souto © 2020</p>
+                    <a href="mailto:gabrielluizferraz@gmail.com">gabrielluizferraz@gmail.com</a>
+                    <ul>
                         <li>
                             <a href="https://www.linkedin.com/in/gabriel-luiz-souto/">Linkedin</a>
-                        </li>                
+                        </li>
                         <li>
                             <a href="https://www.github.com/gabrielluizsouto/umbrequeshow">Github</a>
                         </li>
-                    </ul>        
+                    </ul>
                 </div>
             </div>
         </div>
-    </footer>
+    </footer> -->
 
 
-    <script>fillNowPlayingInfo()</script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </body>
+
 </html>
