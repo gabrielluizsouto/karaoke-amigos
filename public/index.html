@@ -6,11 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> alou </title>
     <link rel="stylesheet" type="text/css" href="public/css/style.css">
-    <script type="text/javascript" src="public/js/script.js"></script>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io()
+        const socket = io();
     </script>
 </head>
 
@@ -22,128 +21,32 @@
 
     </header>
     <main>
-        <div>
-            <h3>Home</h3>
-            <button id="start">START</button>
-            <button id="stop">STOP</button>
-            <div id="msgs"></div>
-            <div id="player-time"></div>
-            <script>
-                socket.on('connect', ()=>{
-                    window.document.getElementById('msgs').append('connected with id: '+socket.id+'\n');
-                    socket.emit('msg', 'estou conectado '+socket.id)
-                })
-                socket.on('msg', (msg) => {
-                    var connected_msg = document.createElement('p');
-                    connected_msg.innerText = msg;
-                    window.document.getElementById('msgs').appendChild(connected_msg);
-                });
-                socket.on('play-video', (msg) => {
-                    if(player) {
-                        player.playVideo();
-                    }
-                });
+        <h3>Karaoke dos Amigos</h3>
+        <div class="container">
 
-                //player-time
-                var player_time = window.document.getElementById('player-time');
-
-                //audio capture
-                var constraints = { audio: true };
-                navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
-                    var mediaRecorder = new MediaRecorder(mediaStream);
-                
-                    mediaRecorder.onstart = function(e) {
-                        this.chunks = [];
-                    };
-                    mediaRecorder.ondataavailable = function(e) {
-                        this.chunks.push(e.data);
-                    };
-                    mediaRecorder.onstop = function(e) {
-                        var blob = new Blob(this.chunks, { 'type' : 'audio/ogg; codecs=opus' });
-                        socket.emit('radio', blob);
-                    };
-
-                    // Start recording
-                    var interval;
-                    var start_button = document.getElementById('start');
-                    start_button.addEventListener('click', ()=>{
-                        mediaRecorder.start();
-                        // Stop recording after 5 seconds and broadcast it to server
-                        interval = setInterval(function() {
-                            mediaRecorder.stop();
-                            mediaRecorder.start();
-
-                            if(player){
-                                player_time.innerText = player.getCurrentTime();
-                            }
-                        }, 1000);
-
-                        //play youtube video
-                        if(player) {
-                            player.playVideo();
-                            socket.emit('video-started');
-                        }
-                    });
-
-                    var stop_button = document.getElementById('stop');
-                    stop_button.addEventListener('click', ()=>{
-                        clearInterval(interval);
-                        mediaRecorder.stop();
-                    })         
-                    
-                    console.log(navigator.mediaDevices.getUserMedia)
-                });
-
-                // When the client receives a voice message it will play the sound
-                socket.on('voice', function(arrayBuffer) {
-                    var blob = new Blob([arrayBuffer], { 'type' : 'audio/ogg; codecs=opus' });
-                    var audio = document.createElement('audio');
-                    audio.src = window.URL.createObjectURL(blob);
-                    audio.play();
-                });
-
-            </script>
-            <div id="player"></div>
-            <script>
-                // 2. This code loads the IFrame Player API code asynchronously.
-                var tag = document.createElement('script');
-          
-                tag.src = "https://www.youtube.com/iframe_api";
-                var firstScriptTag = document.getElementsByTagName('script')[0];
-                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-          
-                // 3. This function creates an <iframe> (and YouTube player)
-                //    after the API code downloads.
-                var player;
-                function onYouTubeIframeAPIReady() {
-                  player = new YT.Player('player', {
-                    height: '360',
-                    width: '640',
-                    videoId: '12szSsIKD0k',
-                    events: {
-                    }
-                  });
-                }
-          
-                // 4. The API will call this function when the video player is ready.
-                function onPlayerReady(event) {
-                  event.target.playVideo();
-                }
-          
-                // 5. The API calls this function when the player's state changes.
-                //    The function indicates that when playing a video (state=1),
-                //    the player should play for six seconds and then stop.
-                var done = false;
-                function onPlayerStateChange(event) {
-                  if (event.data == YT.PlayerState.PLAYING && !done) {
-                    setTimeout(stopVideo, 6000);
-                    done = true;
-                  }
-                }
-                function stopVideo() {
-                  player.stopVideo();
-                }
-              </script>
+            <div class="row">
+                <div class="col s8">
+                    <button id="turn-on-mic">Turn On Mic</button>
+                    <button id="turn-off-mic">Turn Off Mic</button><br>
+                    <button id="start-song">START Music</button>
+                    <button id="stop-song">STOP Music</button>
+                    <div id="msgs"></div>
+                    <div id="users-online"></div>
+                    <div id="player-time"></div>
+                    <div id="player"></div>                    
+                </div>
+                <div class="col s4">
+                    <h4>User queue</h4>
+                    <input id="video-link" type="text">
+                    <button id="change-music">Change Music</button>
+                    <div class="next-musics">
+                        <p>[user1] primeira proxima musica</p>
+                        <p>[user2] segunda proxima musica</p>
+                        <p>[user1] terceira proxima musica</p>
+                    </div>
+                </div>
+            
+            </div>
         </div>
 
     </main>
@@ -167,8 +70,12 @@
     </footer> -->
 
 
-
+    <script type="text/javascript" src="public/js/script.js"></script>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+            
 </body>
 
 </html>
