@@ -50,10 +50,9 @@ io.on('connection', (socket) => {
     });
 
     socket.on('current-video-time', (curr)=>{
-        socket.broadcast.emit('current-video-time', curr);
+        socket.broadcast.emit('current-video-time', curr+voice_delay);
     });
 
-    var voice_delay = process.env.VOI_DELAY || -0.5
     socket.on('adjust-video-time', (curr)=>{
         socket.broadcast.emit('adjust-video-time', curr+voice_delay);
     });
@@ -63,7 +62,9 @@ io.on('connection', (socket) => {
     })
 });  
 
+const voice_delay = parseFloat(process.env.VOI_DELAY) || -0.5
 const port = process.env.PORT || 5000;
 server.listen(port, ()=>{
     console.log('listening on port ' + port);
+    console.log(voice_delay)
 });

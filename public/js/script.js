@@ -24,7 +24,7 @@ socket.on('pause-video', (msg) => {
 var player_time = window.document.getElementById('player-time');
 
 socket.on('current-video-time', (curr) =>{
-    player_time.innerText = curr;
+    player_time.innerText = 'O cantor está no tempo : '+curr.toFixed(2);
 });
 
 socket.on('adjust-video-time', (curr) =>{
@@ -80,7 +80,7 @@ navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
         song_time_interval = setInterval(function() {
             if(window.player){
                 //shows on screen the current time
-                player_time.innerText = window.player.getCurrentTime();
+                player_time.innerText = 'VOCE está cantando: ' + window.player.getCurrentTime().toFixed(2);
                 socket.emit('current-video-time', window.player.getCurrentTime());
 
                 //adjust all users video time
