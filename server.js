@@ -11,12 +11,15 @@ app.get('/', (req, res) => {
     res.status(200).sendFile(__dirname + '/public/index.html');
 });
 
-var users_queue = [];
 
 var connected_users = [];
+var musics_queue = [];
+
 io.on('connection', (socket) => {
-   // console.log('Me conectei '+socket.id);
+    //push connected users
     connected_users.push(socket.id);
+    //load musics queue
+    io.emit('musics-queue', musics_queue);
 
     socket.on('i-connected', (sockId)=>{
         //console.log('i- connected');
@@ -57,14 +60,22 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('adjust-video-time', curr+voice_delay);
     });
 
-    socket.on('changed-music', (videoId)=>{
-        io.emit('change-music', videoId);
-    })
+    socket.on('added-music', (videoId)=>{
+        io.emit('add-music', videoId);
+    });
+
+    socket.on('i-started-sing', () => {
+        socket.broadcast.emit('singer-started');
+    });
+
+    socket.on('song-ended', ()=>{
+        io.emit('song-ended');
+    });
+    
 });  
 
-const voice_delay = parseFloat(process.env.VOI_DELAY) || -0.5
+var voice_delay = parseFloat(process.env.VOI_DELAY) || -0.3
 const port = process.env.PORT || 5000;
 server.listen(port, ()=>{
-    console.log('listening on port ' + port);
-    console.log(voice_delay)
+    console.log('listening on port ' + port + ', delay: ' + voice_delay);
 });
