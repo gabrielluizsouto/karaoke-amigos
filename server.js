@@ -14,6 +14,7 @@ app.get('/', (req, res) => {
 
 var connected_users = [];
 var musics_queue = [];
+var actual_singer = '';
 
 io.on('connection', (socket) => {
     //push connected users
@@ -52,6 +53,14 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('pause-video');
     });
 
+    socket.on('singer-paused-song', (socketId)=>{
+        if(actual_singer && actual_singer == socketId){
+            socket.emit('singer-allowed-pause');
+
+            actual_singer = undefined;
+        }
+    });
+
     socket.on('current-video-time', (curr)=>{
         socket.broadcast.emit('current-video-time', curr+voice_delay);
     });
@@ -64,12 +73,21 @@ io.on('connection', (socket) => {
         io.emit('add-music', videoId);
     });
 
-    socket.on('i-started-sing', () => {
-        socket.broadcast.emit('singer-started');
+    socket.on('i-started-sing', (socketId) => {
+        if(!actual_singer){
+            actual_singer = socketId;
+            io.emit('singer-started', socketId);
+            socket.emit('allowed-to-sing', socketId);
+        } else {
+            if(actual_singer != socketId){
+                socket.emit('singer-not-allowed', socketId);
+            }
+        }
     });
 
     socket.on('song-ended', ()=>{
         io.emit('song-ended');
+        actual_singer = undefined;
     });
     
 });  

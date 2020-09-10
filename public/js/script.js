@@ -72,40 +72,54 @@ navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
     });
 
     // Start song
-    var song_time_interval;
+    window.song_time_interval = '';
     window.start_song = document.getElementById('start-song');
     start_song.addEventListener('click', ()=>{
-        start_button.click();
-        socket.emit('i-started-sing');
-        if(player) {
-            player.playVideo();
-            socket.emit('video-played');
-        }
-        song_time_interval = setInterval(function() {
-            if(window.player){
-                //shows on screen the current time
-                player_time.innerText = 'VOCE está cantando: ' + window.player.getCurrentTime().toFixed(2);
-                socket.emit('current-video-time', window.player.getCurrentTime());
-
-                //adjust all users video time
-                if(parseInt(window.player.getCurrentTime())%10 == 0) {
-                    socket.emit('adjust-video-time', window.player.getCurrentTime());
-                }
-            }
-        }, 1000);
+        socket.emit('i-started-sing', socket.id);
     });
 
     // Stop song
     window.stop_song = document.getElementById('stop-song');
     stop_song.addEventListener('click', ()=>{
-        stop_button.click();
-        if(player) {
-            player.pauseVideo();
-            socket.emit('video-paused');
-        }
-        clearInterval(song_time_interval);
+        socket.emit('singer-paused-song', socket.id);
     });
     
+});
+
+
+socket.on('allowed-to-sing', ()=>{
+    start_button.click();
+    if(player) {
+        player.playVideo();
+        socket.emit('video-played');
+    }
+    song_time_interval = setInterval(function() {
+        if(window.player){
+            //shows on screen the current time
+            player_time.innerText = 'VOCE está cantando: ' + window.player.getCurrentTime().toFixed(2);
+            socket.emit('current-video-time', window.player.getCurrentTime());
+
+            //adjust all users video time
+            if(parseInt(window.player.getCurrentTime())%10 == 0) {
+                socket.emit('adjust-video-time', window.player.getCurrentTime());
+            }
+        }
+    }, 1000);
+});
+
+socket.on('singer-not-allowed', ()=>{
+    var alert_div = document.getElementById('alert-singer-singing');
+    alert_div.innerText = 'ALGUEM ESTA CANTANDO AGORA';
+    setTimeout(()=>{alert_div.innerText = ''}, 1500);
+});
+
+socket.on('singer-allowed-pause', ()=>{
+    stop_button.click();
+    if(player) {
+        player.pauseVideo();
+        socket.emit('video-paused');
+    }
+    clearInterval(song_time_interval);    
 });
 
 // When the client receives a voice message it will play the sound
@@ -129,8 +143,10 @@ socket.on('add-music', (video)=>{
     musicQueueAdd(video);
 })
 
-socket.on('singer-started', () =>{
+socket.on('singer-started', (socketId) =>{
     stop_button.click();
+
+    document.getElementById('actual-singer').innerText = socketId;
 });
 
 socket.on('song-ended', () =>{
