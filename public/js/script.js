@@ -161,6 +161,7 @@ socket.on('song-ended', () =>{
         musics_queue.shift();
 
         //update playlist
+        updatePlaylist();
     }
 });
 
@@ -217,6 +218,10 @@ function musicQueueAdd(videoUrl){
     musics_queue.push(getVideoId(videoUrl));
     setTimeout(()=>{player.pauseVideo();}, 1500);
 
+    updatePlaylist();
+};
+
+function updatePlaylist(){
     var musics_queue_div = document.getElementById('musics-queue-div');
     //clean actual child
     musics_queue_div.innerHTML = '';
@@ -224,7 +229,7 @@ function musicQueueAdd(videoUrl){
     //insert child
     musics_queue.forEach((item)=>{
         var mus = document.createElement('p');
-        mus.innerText = item.title || 'music added to queue by '+socket.id;
+        mus.innerText = item.title || 'User: '+ socket.id + ' added: ' + item;
         musics_queue_div.appendChild(mus);
     });
-};
+}
