@@ -24,7 +24,8 @@ socket.on('pause-video', (msg) => {
 var player_time = window.document.getElementById('player-time');
 
 socket.on('current-video-time', (curr) =>{
-    player_time.innerText = 'O cantor está no tempo : '+curr.toFixed(2);
+    var time = new Date(window.player.getCurrentTime().toFixed(2) * 1000).toISOString().substr(14, 5);
+    player_time.innerText = 'O cantor está no tempo : '+ time;
 });
 
 socket.on('adjust-video-time', (curr) =>{
@@ -96,11 +97,12 @@ socket.on('allowed-to-sing', ()=>{
     song_time_interval = setInterval(function() {
         if(window.player){
             //shows on screen the current time
-            player_time.innerText = 'VOCE está cantando: ' + window.player.getCurrentTime().toFixed(2);
+            var time = new Date(window.player.getCurrentTime().toFixed(2) * 1000).toISOString().substr(14, 5);
+            player_time.innerText = 'VOCE está cantando: ' + time;
             socket.emit('current-video-time', window.player.getCurrentTime());
 
             //adjust all users video time
-            if(parseInt(window.player.getCurrentTime())%10 == 0) {
+            if(parseInt(window.player.getCurrentTime())%30 == 0) {
                 socket.emit('adjust-video-time', window.player.getCurrentTime());
             }
         }
@@ -204,6 +206,12 @@ function onYouTubeIframeAPIReady() {
     });
 }
 
+document.getElementById('rewind-1').addEventListener('click', ()=>{
+    player.seekTo(window.player.getCurrentTime()-1);
+});
+document.getElementById('forward-1').addEventListener('click', ()=>{
+    player.seekTo(window.player.getCurrentTime()+1);
+});
 
 
 function getVideoId(video_link){
