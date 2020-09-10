@@ -14,13 +14,15 @@ app.get('/', (req, res) => {
 
 var connected_users = [];
 var musics_queue = [];
-var actual_singer = '';
+var actual_singer = undefined;
+var now_playing_song = undefined;
 
 io.on('connection', (socket) => {
     //push connected users
     connected_users.push(socket.id);
     //load musics queue
-    io.emit('musics-queue', musics_queue);
+    socket.emit('load-musics-queue', musics_queue);
+    socket.emit('load-now-playing', now_playing_song);
 
     socket.on('i-connected', (sockId)=>{
         //console.log('i- connected');
@@ -70,7 +72,8 @@ io.on('connection', (socket) => {
     });
 
     socket.on('added-music', (videoId)=>{
-        io.emit('add-music', videoId);
+        musics_queue.push(videoId);
+        io.emit('update-playlist', musics_queue);
     });
 
     socket.on('i-started-sing', (socketId) => {
@@ -85,9 +88,13 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('song-ended', ()=>{
-        io.emit('song-ended');
-        actual_singer = undefined;
+    socket.on('call-next-song', ()=>{
+        if(musics_queue.length > 0){
+            now_playing_song = musics_queue.shift();
+            io.emit('next-song', now_playing_song);
+            io.emit('update-playlist', musics_queue);
+            actual_singer = undefined;
+        }
     });
     
 });  

@@ -1,5 +1,5 @@
 socket.on('connect', ()=>{
-    //window.document.getElementById('msgs').append('connected with id: '+socket.id+'\n');
+    ////window.document.getElementById('msgs').append('connected with id: '+socket.id+'\n');
     socket.emit('i-connected', socket.id);
 });
 socket.on('users-connected', (conectados)=>{
@@ -133,14 +133,15 @@ socket.on('voice', function(arrayBuffer) {
 
 var add_music_btn = document.getElementById('add-music');
 add_music_btn.addEventListener('click', ()=>{
-    var video_link = document.getElementById('video-link').value;
+    var videoId = getVideoId(document.getElementById('video-link').value);
 
-    socket.emit('added-music', video_link);
+    socket.emit('added-music', videoId);
 })
 
 
-socket.on('add-music', (video)=>{
-    musicQueueAdd(video);
+socket.on('update-playlist', (musics)=>{
+    musics_queue = musics;
+    updatePlaylist();
 })
 
 socket.on('singer-started', (socketId) =>{
@@ -149,28 +150,28 @@ socket.on('singer-started', (socketId) =>{
     document.getElementById('actual-singer').innerText = socketId;
 });
 
-socket.on('song-ended', () =>{
-    //voltar a voz
+socket.on('next-song', (musicVideoId) =>{
+    //ligar a voz
     start_button.click();
 
     //tocar proxima musica
-    if(musics_queue.length > 0){
-        player.loadVideoById(musics_queue[0]);
-        setTimeout(()=>{player.pauseVideo();}, 2000);
-        
-        musics_queue.shift();
-
-        //update playlist
-        updatePlaylist();
-    }
+    player.loadVideoById(musicVideoId);
+    setTimeout(()=>{player.pauseVideo();}, 2000);
+    
+    //update playlist
+    updatePlaylist();
 });
 
 
 window.next_song = document.getElementById('next-song');
 next_song.addEventListener('click', ()=>{
-    socket.emit('song-ended');
+    socket.emit('call-next-song');
 });
 
+
+socket.on('load-now-playing', (videoId)=>{
+    window.now_playing_song = videoId;
+});
 
 //youtube player API
 // 2. This code loads the IFrame Player API code asynchronously.
@@ -184,10 +185,12 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 //    after the API code downloads.
 var player;
 function onYouTubeIframeAPIReady() {
+    var now_playing_song = window.now_playing_song || '3Uj-F8Ff7eU';
+
     player = new YT.Player('player', {
         height: '160',
         width: '340',
-        videoId: '12szSsIKD0k',
+        videoId: now_playing_song,
         events: {
         }
     });
@@ -209,17 +212,11 @@ function getVideoId(video_link){
     return match[7];
 }
 
-var musics_queue = window.musics_queue || [];
-socket.on('musics-queue', (queue)=>{
-    musics_queue = queue;
+socket.on('load-musics-queue', (queue)=>{
+    window.musics_queue = queue;
+    updatePlaylist();
 });
 
-function musicQueueAdd(videoUrl){
-    musics_queue.push(getVideoId(videoUrl));
-    setTimeout(()=>{player.pauseVideo();}, 1500);
-
-    updatePlaylist();
-};
 
 function updatePlaylist(){
     var musics_queue_div = document.getElementById('musics-queue-div');
