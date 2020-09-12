@@ -25,7 +25,7 @@ io.on('connection', (socket) => {
     //load musics queue
     socket.emit('load-musics-queue', musics_queue);
     socket.emit('load-now-playing', now_playing_song);
-    socket.emit('load-actual-singer', actual_singer);
+    socket.emit('load-actual-singer', users_list[actual_singer]);
 
         
     io.emit('users-connected', Object.keys(users_list).length);
