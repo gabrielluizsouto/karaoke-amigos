@@ -1,7 +1,7 @@
 
 socket.on('users-connected', (conectados)=>{
     var users_online = window.document.getElementById('users-online');
-    users_online.innerText = "Users online: " + conectados.length; 
+    users_online.innerText = "Users online: " + conectados; 
     
 })
 socket.on('play-video', (msg) => {
@@ -35,21 +35,21 @@ socket.on('adjust-video-time', (curr) =>{
     player.seekTo(curr);
 });
 
-//audio capture
-var constraints = { audio: true };
-navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
-    var mediaRecorder = new MediaRecorder(mediaStream);
+// //audio capture
+// var constraints = { audio: true };
+// navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
+//     var mediaRecorder = new MediaRecorder(mediaStream);
     
-    mediaRecorder.onstart = function(e) {
-        this.chunks = [];
-    };
-    mediaRecorder.ondataavailable = function(e) {
-        this.chunks.push(e.data);
-    };
-    mediaRecorder.onstop = function(e) {
-        var blob = new Blob(this.chunks, { 'type' : 'audio/ogg; codecs=opus' });
-        socket.emit('radio', blob);
-    };
+//     mediaRecorder.onstart = function(e) {
+//         this.chunks = [];
+//     };
+//     mediaRecorder.ondataavailable = function(e) {
+//         this.chunks.push(e.data);
+//     };
+//     mediaRecorder.onstop = function(e) {
+//         var blob = new Blob(this.chunks, { 'type' : 'audio/ogg; codecs=opus' });
+//         socket.emit('radio', blob);
+//     };
     
     
     // Start song
@@ -65,7 +65,7 @@ navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
         socket.emit('singer-paused-song', socket.id);
     });
     
-});
+// });
 
 
 socket.on('allowed-to-sing', ()=>{

@@ -12,43 +12,40 @@ app.get('/', (req, res) => {
 });
 
 
-//variavel temporaria
-    var users_list = {};
-
-var connected_users = [];
+var users_list = {};
 var musics_queue = [];
 var actual_singer = undefined;
 var now_playing_song = undefined;
 
 io.on('connection', (socket) => {
     //push connected users
-    connected_users.push(socket.id);
+    users_list[socket.id] = 'Anon';
+    io.emit('update-users-list', users_list);
+    
     //load musics queue
     socket.emit('load-musics-queue', musics_queue);
     socket.emit('load-now-playing', now_playing_song);
     socket.emit('load-actual-singer', actual_singer);
 
-        users_list[socket.id] = 'Anon';
-        io.emit('update-users-list', users_list);
-        console.log(users_list);
-
-    io.emit('users-connected', connected_users);
-    console.log('users online '+connected_users.length)
-
-
-
+        
+    io.emit('users-connected', Object.keys(users_list).length);
+    console.log('users online ' + Object.keys(users_list).length)
+    //console.log(users_list)
 
     socket.on('disconnect', ()=>{
-        //update the connected users array
-        connected_users = connected_users.filter(function(value, index, arr){ return value != socket.id;});
-        
-        socket.broadcast.emit('users-connected', connected_users);
+        delete users_list[socket.id];
+
+        socket.broadcast.emit('users-connected', Object.keys(users_list).length);
 
         console.log('User disconnected '+socket.id)
 
-            delete users_list[socket.id];
-            io.emit('update-users-list', users_list);
-            console.log('emitted')
+        io.emit('update-users-list', users_list);
+
+        //adjust if the disconnected player is the singer
+        if(socket.id == actual_singer) {
+            actual_singer = undefined;
+            io.emit('pause-video');
+        }
     });
 
     socket.on('radio', function(blob) {
@@ -123,6 +120,7 @@ io.on('connection', (socket) => {
     socket.on('nick-setted', (socketId, nick)=>{
         users_list[socketId] = nick;
         io.emit('update-users-list', users_list);
+        console.log(users_list)
     });
     
 });  
