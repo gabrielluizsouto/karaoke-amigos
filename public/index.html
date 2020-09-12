@@ -6,8 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> Karaoke dos Amigos </title>
     <link rel="stylesheet" type="text/css" href="public/css/style.css">
-    
+
     <script src="/socket.io/socket.io.js"></script>
+
     <script>
         const socket = io();
     </script>
@@ -25,7 +26,12 @@
         <div class="container">
             
             <div class="row">
-                <div class="col s8">
+                <div class="col s2">
+                    <h4>Users Online</h4>
+                    <div id='users-list'>
+                    </div>
+                </div>
+                <div class="col s6">
                     <button id="change-nick">Mudar Nome</button><br>
                     <!-- <button id="turn-on-mic">Turn On Mic</button>
                     <button id="turn-off-mic">Turn Off Mic</button><br> -->
@@ -100,6 +106,8 @@
                     var nick = document.getElementById('nick').value;
                     if(nick != ''){
                         docCookies.setItem('nick', nick);
+
+                        nickSetted(nick);
                     } else {
                         nick_modal.open();
                     }
@@ -108,7 +116,6 @@
             }
         });
     </script>
-    
     
     
     <script type="text/javascript" src="public/js/script.js"></script>

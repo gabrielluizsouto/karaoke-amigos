@@ -12,6 +12,9 @@ app.get('/', (req, res) => {
 });
 
 
+//variavel temporaria
+    var users_list = {};
+
 var connected_users = [];
 var musics_queue = [];
 var actual_singer = undefined;
@@ -25,12 +28,15 @@ io.on('connection', (socket) => {
     socket.emit('load-now-playing', now_playing_song);
     socket.emit('load-actual-singer', actual_singer);
 
+        users_list[socket.id] = 'Anon';
+        io.emit('update-users-list', users_list);
+        console.log(users_list);
 
-    socket.on('i-connected', (sockId)=>{
-        io.emit('users-connected', connected_users);
+    io.emit('users-connected', connected_users);
+    console.log('users online '+connected_users.length)
 
-        console.log('users online '+connected_users.length+': '+connected_users)
-    })
+
+
 
     socket.on('disconnect', ()=>{
         //update the connected users array
@@ -39,6 +45,10 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('users-connected', connected_users);
 
         console.log('User disconnected '+socket.id)
+
+            delete users_list[socket.id];
+            io.emit('update-users-list', users_list);
+            console.log('emitted')
     });
 
     socket.on('radio', function(blob) {
@@ -108,6 +118,11 @@ io.on('connection', (socket) => {
     socket.on('clean-actual-singer', ()=>{
         io.emit('pause-video');
         actual_singer = undefined;
+    });
+
+    socket.on('nick-setted', (socketId, nick)=>{
+        users_list[socketId] = nick;
+        io.emit('update-users-list', users_list);
     });
     
 });  

@@ -1,6 +1,4 @@
-socket.on('connect', ()=>{
-    socket.emit('i-connected', socket.id);
-});
+
 socket.on('users-connected', (conectados)=>{
     var users_online = window.document.getElementById('users-online');
     users_online.innerText = "Users online: " + conectados.length; 
@@ -53,28 +51,6 @@ navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
         socket.emit('radio', blob);
     };
     
-    // Start recording (turn on mic)
-    var interval;
-    window.start_button = document.getElementById('turn-on-mic');
-    start_button.addEventListener('click', ()=>{
-        // mediaRecorder.start();
-        // // Stop recording after 5 seconds and broadcast it to server
-        // interval = setInterval(function() {
-        //     mediaRecorder.stop();
-        //     mediaRecorder.start();
-        // }, 500);
-        
-        // document.getElementById('mic-state').innerText = 'Mic ON';
-    });
-    
-    // Stop recording (turn off mic)
-    window.stop_button = document.getElementById('turn-off-mic');
-    stop_button.addEventListener('click', ()=>{
-        // clearInterval(interval);
-        // mediaRecorder.stop();
-        
-        // document.getElementById('mic-state').innerText = 'Mic OFF';
-    });
     
     // Start song
     window.song_time_interval = '';
@@ -248,6 +224,19 @@ function updatePlaylist(){
     });
 }
 
+function updateUsersList(users){
+    var users_list_div = document.getElementById('users-list');
+    users_list_div.innerHTML = '';
+
+    for (key in users) {
+        // check if the property/key is defined in the object itself, not in parent
+        if (users.hasOwnProperty(key)) {           
+            var usr = document.createElement('p');
+            usr.innerText = users[key];
+            users_list_div.appendChild(usr);
+        }
+    }
+}
 
 
 function cleanMusicsQueue(){
@@ -259,12 +248,21 @@ function cleanActualSinger(){
 }
 
 
-
 var change_nick_btn = document.getElementById('change-nick')
 change_nick_btn.addEventListener('click', ()=>{
     docCookies.removeItem('nick');
     window.nick_modal.open();
 });
+
+
+function nickSetted(nick){
+    socket.emit('nick-setted', socket.id, nick);
+}
+
+
+socket.on('update-users-list', (users)=>{
+    updateUsersList(users);
+})
 
 /*\
 |*|
