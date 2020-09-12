@@ -91,10 +91,12 @@ socket.on('allowed-to-sing', ()=>{
     }, 1000);
 });
 
-socket.on('singer-not-allowed', ()=>{
+socket.on('singer-not-allowed', (socketId, now_playing_song)=>{
     var alert_div = document.getElementById('alert-singer-singing');
     alert_div.innerText = 'ALGUEM ESTA CANTANDO AGORA';
     setTimeout(()=>{alert_div.innerText = ''}, 1500);
+
+    player.loadVideoById(now_playing_song);
 });
 
 socket.on('singer-allowed-pause', ()=>{
