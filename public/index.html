@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> alou </title>
+    <title> Karaoke dos Amigos </title>
     <link rel="stylesheet" type="text/css" href="public/css/style.css">
-
+    
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
@@ -16,24 +16,25 @@
 <body>
     <header>
         <menu>
-
+            
         </menu>
-
+        
     </header>
     <main>
         <h3>Karaoke dos Amigos</h3>
         <div class="container">
-
+            
             <div class="row">
                 <div class="col s8">
-                    <button id="turn-on-mic">Turn On Mic</button>
-                    <button id="turn-off-mic">Turn Off Mic</button><br>
+                    <button id="change-nick">Mudar Nome</button><br>
+                    <!-- <button id="turn-on-mic">Turn On Mic</button>
+                    <button id="turn-off-mic">Turn Off Mic</button><br> -->
                     <button id="start-song">START Music</button>
-                    <button id="stop-song">STOP Music</button>
+                    <button id="pause-song">PAUSE Music</button>
                     <button id="next-song">NEXT Music</button><br>
                     <p id='actual-singer'></p>
                     <p id='alert-singer-singing'></p>
-
+                    
                     <div id="msgs"></div>
                     <div id="mic-state"></div>
                     <div id="users-online"></div>
@@ -51,10 +52,10 @@
                         <p></p>
                     </div>
                 </div>
-            
+                
             </div>
         </div>
-
+        
     </main>
     <!-- <footer>
         <div class="col s12 info-container blue lighten-3">
@@ -74,14 +75,48 @@
             </div>
         </div>
     </footer> -->
-
-
+    
+    
+    <!-- Modal Structure -->
+    <div id="modal-insert-name" class="modal">
+        <div class="modal-content">
+            <h4>Insira seu nome</h4>
+            <p>Utilize um nome para os outros usuários conseguirem te identificar mais facilmente :)</p>
+            <div class="input-field">
+                <input placeholder="nome ou apelido" id="nick" type="text">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Pronto</a>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var nick = docCookies.getItem('nick');
+            window.nick_modal = M.Modal.init(document.querySelector('#modal-insert-name'));  
+            if(!nick){
+                nick_modal.options.onCloseEnd = function(){
+                    //se nao tiver definido abre de novo
+                    var nick = document.getElementById('nick').value;
+                    if(nick != ''){
+                        docCookies.setItem('nick', nick);
+                    } else {
+                        nick_modal.open();
+                    }
+                };
+                nick_modal.open();
+            }
+        });
+    </script>
+    
+    
+    
     <script type="text/javascript" src="public/js/script.js"></script>
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-            
+    
 </body>
 
 </html>

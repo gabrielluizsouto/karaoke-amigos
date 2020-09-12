@@ -23,10 +23,10 @@ io.on('connection', (socket) => {
     //load musics queue
     socket.emit('load-musics-queue', musics_queue);
     socket.emit('load-now-playing', now_playing_song);
+    socket.emit('load-actual-singer', actual_singer);
+
 
     socket.on('i-connected', (sockId)=>{
-        //console.log('i- connected');
-        socket.broadcast.emit('new-user-connected', sockId);
         io.emit('users-connected', connected_users);
 
         console.log('users online '+connected_users.length+': '+connected_users)
@@ -52,7 +52,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('video-paused', ()=>{
-        socket.broadcast.emit('pause-video');
+        io.emit('pause-video');
     });
 
     socket.on('singer-paused-song', (socketId)=>{
@@ -64,7 +64,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('current-video-time', (curr)=>{
-        socket.broadcast.emit('current-video-time', curr+voice_delay);
+        io.emit('current-video-time', curr, actual_singer);
     });
 
     socket.on('adjust-video-time', (curr)=>{
@@ -79,7 +79,8 @@ io.on('connection', (socket) => {
     socket.on('i-started-sing', (socketId) => {
         if(!actual_singer){
             actual_singer = socketId;
-            io.emit('singer-started', socketId);
+            console.log('actual singer: '+actual_singer);
+            socket.broadcast.emit('singer-started', socketId);
             socket.emit('allowed-to-sing', socketId);
         } else {
             if(actual_singer != socketId){
@@ -94,7 +95,19 @@ io.on('connection', (socket) => {
             io.emit('next-song', now_playing_song);
             io.emit('update-playlist', musics_queue);
             actual_singer = undefined;
+            console.log('actual singer: '+actual_singer);
         }
+    });
+
+
+    socket.on('clean-music-queue', ()=>{
+        musics_queue = [];
+        io.emit('update-playlist', musics_queue);
+    });
+
+    socket.on('clean-actual-singer', ()=>{
+        io.emit('pause-video');
+        actual_singer = undefined;
     });
     
 });  

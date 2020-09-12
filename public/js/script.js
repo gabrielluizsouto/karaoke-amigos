@@ -1,10 +1,7 @@
 socket.on('connect', ()=>{
-    ////window.document.getElementById('msgs').append('connected with id: '+socket.id+'\n');
     socket.emit('i-connected', socket.id);
 });
 socket.on('users-connected', (conectados)=>{
-    //console.log('users-connected');
-    //update users online
     var users_online = window.document.getElementById('users-online');
     users_online.innerText = "Users online: " + conectados.length; 
     
@@ -18,14 +15,21 @@ socket.on('pause-video', (msg) => {
     if(player) {
         player.pauseVideo();
     }
+    updateActualSinger('');
 });
 
 //player-time
 var player_time = window.document.getElementById('player-time');
 
-socket.on('current-video-time', (curr) =>{
-    var time = new Date(window.player.getCurrentTime().toFixed(2) * 1000).toISOString().substr(14, 5);
-    player_time.innerText = 'O cantor está no tempo : '+ time;
+socket.on('current-video-time', (curr, singer) =>{
+    var time = new Date(curr.toFixed(2) * 1000).toISOString().substr(14, 5);
+    var who_is_singing;
+    if(singer == socket.id) {
+        who_is_singing = 'Você está no tempo: ';
+    } else {
+        who_is_singing = 'O cantor está no tempo: ';
+    }
+    player_time.innerText = who_is_singing + time;
 });
 
 socket.on('adjust-video-time', (curr) =>{
@@ -37,7 +41,7 @@ socket.on('adjust-video-time', (curr) =>{
 var constraints = { audio: true };
 navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
     var mediaRecorder = new MediaRecorder(mediaStream);
-
+    
     mediaRecorder.onstart = function(e) {
         this.chunks = [];
     };
@@ -48,39 +52,39 @@ navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
         var blob = new Blob(this.chunks, { 'type' : 'audio/ogg; codecs=opus' });
         socket.emit('radio', blob);
     };
-
+    
     // Start recording (turn on mic)
     var interval;
     window.start_button = document.getElementById('turn-on-mic');
     start_button.addEventListener('click', ()=>{
-        mediaRecorder.start();
-        // Stop recording after 5 seconds and broadcast it to server
-        interval = setInterval(function() {
-            mediaRecorder.stop();
-            mediaRecorder.start();
-        }, 500);
-
-        document.getElementById('mic-state').innerText = 'Mic ON';
+        // mediaRecorder.start();
+        // // Stop recording after 5 seconds and broadcast it to server
+        // interval = setInterval(function() {
+        //     mediaRecorder.stop();
+        //     mediaRecorder.start();
+        // }, 500);
+        
+        // document.getElementById('mic-state').innerText = 'Mic ON';
     });
-
+    
     // Stop recording (turn off mic)
     window.stop_button = document.getElementById('turn-off-mic');
     stop_button.addEventListener('click', ()=>{
-        clearInterval(interval);
-        mediaRecorder.stop();
-
-        document.getElementById('mic-state').innerText = 'Mic OFF';
+        // clearInterval(interval);
+        // mediaRecorder.stop();
+        
+        // document.getElementById('mic-state').innerText = 'Mic OFF';
     });
-
+    
     // Start song
     window.song_time_interval = '';
     window.start_song = document.getElementById('start-song');
     start_song.addEventListener('click', ()=>{
         socket.emit('i-started-sing', socket.id);
     });
-
+    
     // Stop song
-    window.stop_song = document.getElementById('stop-song');
+    window.stop_song = document.getElementById('pause-song');
     stop_song.addEventListener('click', ()=>{
         socket.emit('singer-paused-song', socket.id);
     });
@@ -89,18 +93,20 @@ navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
 
 
 socket.on('allowed-to-sing', ()=>{
-    start_button.click();
+    //start_button.click();
     if(player) {
         player.playVideo();
         socket.emit('video-played');
     }
+    updateActualSinger('Você está cantando');
+    
     song_time_interval = setInterval(function() {
         if(window.player){
             //shows on screen the current time
-            var time = new Date(window.player.getCurrentTime().toFixed(2) * 1000).toISOString().substr(14, 5);
-            player_time.innerText = 'VOCE está cantando: ' + time;
+            // var time = new Date(window.player.getCurrentTime().toFixed(2) * 1000).toISOString().substr(14, 5);
+            // player_time.innerText = 'VOCE está cantando: ' + time;
             socket.emit('current-video-time', window.player.getCurrentTime());
-
+            
             //adjust all users video time
             if(parseInt(window.player.getCurrentTime())%30 == 0) {
                 socket.emit('adjust-video-time', window.player.getCurrentTime());
@@ -116,11 +122,8 @@ socket.on('singer-not-allowed', ()=>{
 });
 
 socket.on('singer-allowed-pause', ()=>{
-    stop_button.click();
-    if(player) {
-        player.pauseVideo();
-        socket.emit('video-paused');
-    }
+    //stop_button.click();
+    socket.emit('video-paused');
     clearInterval(song_time_interval);    
 });
 
@@ -136,7 +139,7 @@ socket.on('voice', function(arrayBuffer) {
 var add_music_btn = document.getElementById('add-music');
 add_music_btn.addEventListener('click', ()=>{
     var videoId = getVideoId(document.getElementById('video-link').value);
-
+    
     socket.emit('added-music', videoId);
 })
 
@@ -147,21 +150,17 @@ socket.on('update-playlist', (musics)=>{
 })
 
 socket.on('singer-started', (socketId) =>{
-    stop_button.click();
-
-    document.getElementById('actual-singer').innerText = socketId;
+    //stop_button.click();
+    document.getElementById('actual-singer').innerText = socketId + ' está cantando';
 });
 
 socket.on('next-song', (musicVideoId) =>{
     //ligar a voz
-    start_button.click();
-
+    //start_button.click();
+    
     //tocar proxima musica
     player.loadVideoById(musicVideoId);
     setTimeout(()=>{player.pauseVideo();}, 2000);
-    
-    //update playlist
-    updatePlaylist();
 });
 
 
@@ -178,7 +177,7 @@ socket.on('load-now-playing', (videoId)=>{
 //youtube player API
 // 2. This code loads the IFrame Player API code asynchronously.
 var tag = document.createElement('script');
-          
+
 tag.src = "https://www.youtube.com/iframe_api";
 var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
@@ -188,7 +187,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 var player;
 function onYouTubeIframeAPIReady() {
     var now_playing_song = window.now_playing_song || '3Uj-F8Ff7eU';
-
+    
     player = new YT.Player('player', {
         height: '160',
         width: '340',
@@ -196,7 +195,7 @@ function onYouTubeIframeAPIReady() {
         events: {
         }
     });
-
+    
     player.addEventListener("onStateChange", function(state){
         //video ended
         if(state.data === 0){
@@ -225,12 +224,22 @@ socket.on('load-musics-queue', (queue)=>{
     updatePlaylist();
 });
 
+socket.on('load-actual-singer', (singer)=>{
+    if(singer){
+        updateActualSinger(singer + ' está cantando');
+    }
+});
+
+
+function updateActualSinger(msg){
+    document.getElementById('actual-singer').innerText = msg;
+}
 
 function updatePlaylist(){
     var musics_queue_div = document.getElementById('musics-queue-div');
     //clean actual child
     musics_queue_div.innerHTML = '';
-
+    
     //insert child
     musics_queue.forEach((item)=>{
         var mus = document.createElement('p');
@@ -238,3 +247,86 @@ function updatePlaylist(){
         musics_queue_div.appendChild(mus);
     });
 }
+
+
+
+function cleanMusicsQueue(){
+    socket.emit('clean-music-queue');
+}
+
+function cleanActualSinger(){
+    socket.emit('clean-actual-singer');
+}
+
+
+
+var change_nick_btn = document.getElementById('change-nick')
+change_nick_btn.addEventListener('click', ()=>{
+    docCookies.removeItem('nick');
+    window.nick_modal.open();
+});
+
+/*\
+|*|
+|*|  :: cookies.js ::
+|*|
+|*|  A complete cookies reader/writer framework with full unicode support.
+|*|
+|*|  Revision #1 - September 4, 2014
+|*|
+|*|  https://developer.mozilla.org/en-US/docs/Web/API/document.cookie
+|*|  https://developer.mozilla.org/User:fusionchess
+|*|  https://github.com/madmurphy/cookies.js
+|*|
+|*|  This framework is released under the GNU Public License, version 3 or later.
+|*|  http://www.gnu.org/licenses/gpl-3.0-standalone.html
+|*|
+|*|  Syntaxes:
+|*|
+|*|  * docCookies.setItem(name, value[, end[, path[, domain[, secure]]]])
+|*|  * docCookies.getItem(name)
+|*|  * docCookies.removeItem(name[, path[, domain]])
+|*|  * docCookies.hasItem(name)
+|*|  * docCookies.keys()
+|*|
+\*/
+
+var docCookies = {
+    getItem: function (sKey) {
+        if (!sKey) { return null; }
+        return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
+    },
+    setItem: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
+        if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) { return false; }
+        var sExpires = "";
+        if (vEnd) {
+            switch (vEnd.constructor) {
+                case Number:
+                sExpires = vEnd === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + vEnd;
+                break;
+                case String:
+                sExpires = "; expires=" + vEnd;
+                break;
+                case Date:
+                sExpires = "; expires=" + vEnd.toUTCString();
+                break;
+            }
+        }
+        document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
+        return true;
+    },
+    removeItem: function (sKey, sPath, sDomain) {
+        if (!this.hasItem(sKey)) { return false; }
+        document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "");
+        return true;
+    },
+    hasItem: function (sKey) {
+        if (!sKey) { return false; }
+        return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
+    },
+    keys: function () {
+        var aKeys = document.cookie.replace(/((?:^|\s*;)[^\=]+)(?=;|$)|^\s*|\s*(?:\=[^;]*)?(?:\1|$)/g, "").split(/\s*(?:\=[^;]*)?;\s*/);
+        for (var nLen = aKeys.length, nIdx = 0; nIdx < nLen; nIdx++) { aKeys[nIdx] = decodeURIComponent(aKeys[nIdx]); }
+        return aKeys;
+    }
+};
