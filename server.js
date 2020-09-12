@@ -101,6 +101,7 @@ io.on('connection', (socket) => {
             now_playing_song = musics_queue.shift();
             io.emit('next-song', now_playing_song);
             io.emit('update-playlist', musics_queue);
+            io.emit('update-now-playing-song', now_playing_song);
             actual_singer = undefined;
             console.log('actual singer: '+actual_singer);
         }
@@ -117,10 +118,22 @@ io.on('connection', (socket) => {
         actual_singer = undefined;
     });
 
+    socket.on('clean-now-playing-song', ()=>{
+        now_playing_song = undefined;
+        io.emit('update-now-playing-song', now_playing_song);
+    });
+
     socket.on('nick-setted', (socketId, nick)=>{
         users_list[socketId] = nick;
         io.emit('update-users-list', users_list);
         console.log(users_list)
+    });
+
+    socket.on('disconnect-all-users', ()=>{
+        for(key in users_list){
+            io.sockets.connected[key].disconnect;
+            console.log(io.sockets.connected[key].connected);
+        }
     });
     
 });  

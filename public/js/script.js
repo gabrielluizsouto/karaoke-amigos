@@ -272,6 +272,12 @@ socket.on('update-users-list', (users)=>{
     updateUsersList(users);
 })
 
+socket.on('update-now-playing-song', (song)=>{
+    now_playing_song = song;
+})
+
+
+
 /*\
 |*|
 |*|  :: cookies.js ::
