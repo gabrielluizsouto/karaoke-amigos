@@ -91,7 +91,7 @@ io.on('connection', (socket) => {
             socket.emit('allowed-to-sing', socketId);
         } else {
             if(actual_singer != socketId){
-                socket.emit('singer-not-allowed', socketId, now_playing_song);
+                socket.emit('singer-not-allowed');
             }
         }
     });

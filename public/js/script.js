@@ -31,8 +31,11 @@ socket.on('current-video-time', (curr, singer) =>{
 });
 
 socket.on('adjust-video-time', (curr) =>{
-    player.playVideo();
-    player.seekTo(curr);
+    if(player){
+        player.playVideo();
+        player.seekTo(curr);
+    }
+    
 });
 
 // //audio capture
@@ -91,12 +94,15 @@ socket.on('allowed-to-sing', ()=>{
     }, 1000);
 });
 
-socket.on('singer-not-allowed', (socketId, now_playing_song)=>{
+socket.on('singer-not-allowed', ()=>{
     var alert_div = document.getElementById('alert-singer-singing');
     alert_div.innerText = 'ALGUEM ESTA CANTANDO AGORA';
     setTimeout(()=>{alert_div.innerText = ''}, 1500);
 
-    player.loadVideoById(now_playing_song);
+    if(player){
+        player.loadVideoById(now_playing_song);
+        setTimeout(()=>{player.playVideo()},2000);
+    }
 });
 
 socket.on('singer-allowed-pause', ()=>{
@@ -127,9 +133,9 @@ socket.on('update-playlist', (musics)=>{
     updatePlaylist();
 })
 
-socket.on('singer-started', (socketId) =>{
+socket.on('singer-started', (singer) =>{
     //stop_button.click();
-    document.getElementById('actual-singer').innerText = socketId + ' está cantando';
+    document.getElementById('actual-singer').innerText = singer + ' está cantando';
 });
 
 socket.on('next-song', (musicVideoId) =>{
