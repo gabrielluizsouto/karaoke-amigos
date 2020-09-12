@@ -86,8 +86,8 @@ io.on('connection', (socket) => {
     socket.on('i-started-sing', (socketId) => {
         if(!actual_singer){
             actual_singer = socketId;
-            console.log('actual singer: '+actual_singer);
-            socket.broadcast.emit('singer-started', socketId);
+            //console.log('actual singer: '+actual_singer);
+            socket.broadcast.emit('singer-started', users_list[socketId]);
             socket.emit('allowed-to-sing', socketId);
         } else {
             if(actual_singer != socketId){
