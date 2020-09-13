@@ -67,6 +67,7 @@ io.on('connection', (socket) => {
             socket.emit('singer-allowed-pause');
 
             actual_singer = undefined;
+            socket.emit('load-actual-singer', actual_singer);
         }
     });
 
@@ -75,7 +76,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('adjust-video-time', (curr)=>{
-        socket.broadcast.emit('adjust-video-time', curr+voice_delay);
+        socket.broadcast.emit('adjust-video-time', curr);
     });
 
     socket.on('added-music', (videoId)=>{
@@ -103,6 +104,7 @@ io.on('connection', (socket) => {
             io.emit('update-playlist', musics_queue);
             io.emit('update-now-playing-song', now_playing_song);
             actual_singer = undefined;
+            socket.emit('load-actual-singer', actual_singer);
             console.log('actual singer: '+actual_singer);
         }
     });
@@ -135,6 +137,15 @@ io.on('connection', (socket) => {
             console.log(io.sockets.connected[key].connected);
         }
     });
+
+
+    socket.on('ask-to-adjust-video-time', ()=>{
+        socket.emit('adjust-video-time', undefined);
+    });
+
+    socket.on('song-ended', ()=>{
+        actual_singer=undefined;
+    })
     
 });  
 

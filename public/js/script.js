@@ -20,6 +20,7 @@ socket.on('pause-video', (msg) => {
 var player_time = window.document.getElementById('player-time');
 
 socket.on('current-video-time', (curr, singer) =>{
+    window.singer_time = curr;
     var time = new Date(curr.toFixed(2) * 1000).toISOString().substr(14, 5);
     var who_is_singing;
     if(singer == socket.id) {
@@ -31,6 +32,10 @@ socket.on('current-video-time', (curr, singer) =>{
 });
 
 socket.on('adjust-video-time', (curr) =>{
+    
+    if(curr == undefined){
+        curr = window.singer_time+0.4;
+    }
     if(player){
         player.playVideo();
         player.seekTo(curr);
@@ -87,9 +92,9 @@ socket.on('allowed-to-sing', ()=>{
             socket.emit('current-video-time', window.player.getCurrentTime());
             
             //adjust all users video time
-            if(parseInt(window.player.getCurrentTime())%30 == 0) {
-                socket.emit('adjust-video-time', window.player.getCurrentTime());
-            }
+            //if(parseInt(window.player.getCurrentTime())%30 == 0) {
+                //socket.emit('adjust-video-time', window.player.getCurrentTime());
+            //}
         }
     }, 1000);
 });
@@ -211,7 +216,10 @@ socket.on('load-musics-queue', (queue)=>{
 socket.on('load-actual-singer', (singer)=>{
     if(singer){
         updateActualSinger(singer + ' está cantando');
+    } else {
+        document.getElementById('actual-singer').innerText = '';
     }
+
 });
 
 
@@ -274,6 +282,12 @@ socket.on('update-users-list', (users)=>{
 
 socket.on('update-now-playing-song', (song)=>{
     now_playing_song = song;
+})
+
+
+var sync_btn = document.getElementById('sync-music');
+sync_btn.addEventListener('click', function(){
+    socket.emit('ask-to-adjust-video-time');
 })
 
 
