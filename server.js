@@ -24,7 +24,7 @@ io.on('connection', (socket) => {
     
     //load musics queue
     socket.emit('load-musics-queue', musics_queue);
-    socket.emit('load-now-playing', now_playing_song);
+    socket.emit('load-now-playing', now_playing_song ? now_playing_song.music : now_playing_song);
     socket.emit('load-actual-singer', users_list[actual_singer]);
 
         
@@ -68,6 +68,8 @@ io.on('connection', (socket) => {
 
             actual_singer = undefined;
             socket.emit('load-actual-singer', actual_singer);
+        } else {
+            socket.emit('singer-not-allowed-pause', actual_singer);
         }
     });
 
@@ -79,8 +81,9 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('adjust-video-time', curr);
     });
 
-    socket.on('added-music', (videoId)=>{
-        musics_queue.push(videoId);
+    socket.on('added-music', (videoId, socketId)=>{
+        var user_name = users_list[socketId];
+        musics_queue.push({music: videoId, user:user_name});
         io.emit('update-playlist', musics_queue);
     });
 
@@ -100,9 +103,9 @@ io.on('connection', (socket) => {
     socket.on('call-next-song', ()=>{
         if(musics_queue.length > 0){
             now_playing_song = musics_queue.shift();
-            io.emit('next-song', now_playing_song);
+            io.emit('next-song', now_playing_song.music);
             io.emit('update-playlist', musics_queue);
-            io.emit('update-now-playing-song', now_playing_song);
+            io.emit('update-now-playing-song', now_playing_song.music);
             actual_singer = undefined;
             socket.emit('load-actual-singer', actual_singer);
             console.log('actual singer: '+actual_singer);
@@ -145,6 +148,7 @@ io.on('connection', (socket) => {
 
     socket.on('song-ended', ()=>{
         actual_singer=undefined;
+        io.emit('pause-video');
     })
     
 });  

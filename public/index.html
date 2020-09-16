@@ -37,15 +37,7 @@
                 <p>Entre em uma sala de chat por voz (Meet, Discord, Zoom, etc) com seus amigos e use o 'Karaoke dos Amigos' como seu aparelho de karaokê. </p>
             </div>
             <div class="row">
-                <div class="col s2">
-                    <button id="change-nick">Mudar Nome</button><br>
-                    <h4>Users Online</h4>
-                    <div id="users-online"></div>
-                    <div id='users-list'>
-                        
-                    </div>
-                </div>
-                <div class="col s6">
+                <div class="col s12">
                     <button id="start-song">START Music</button>
                     <button id="pause-song">PAUSE Music</button>
                     <button id="next-song">NEXT Music</button><br>
@@ -57,11 +49,21 @@
                     <div id="player-time"></div>
                     <button id='rewind-1'>Voltar 1s</button>
                     <button id='forward-1'>Avançar 1s</button><br>
-                    <button id='sync-music'>Sincronizar musica</button><br>
-                    <div id="player"></div>                    
+                    <button id='sync-music'>Sync music</button><br>
+                    <div class="video-container">
+                        <div id="player"></div>                    
+                    </div>
                 </div>
-                <div class="col s4">
-                    <h4>User queue</h4>
+            </div>
+            <div class="row">
+                <div class="col s6">
+                    <h4>Users Online</h4>
+                    <div id="users-online"></div>
+                    <div id='users-list'></div>
+                    <button id="change-nick">Change nick</button>                 
+                </div>
+                <div class="col s6">
+                    <h4>Musics queue</h4>
                     <div class="row">
                         <div class="input-field col s12">
                           <input id="video-link" type="text" class="validate">
@@ -74,7 +76,6 @@
                         <p></p>
                     </div>
                 </div>
-                
             </div>
         </div>
         

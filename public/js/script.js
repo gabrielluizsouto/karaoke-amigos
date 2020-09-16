@@ -2,8 +2,7 @@
 socket.on('users-connected', (conectados)=>{
     var users_online = window.document.getElementById('users-online');
     users_online.innerText = "Users online: " + conectados; 
-    
-})
+});
 socket.on('play-video', (msg) => {
     if(player) {
         player.playVideo();
@@ -47,7 +46,7 @@ socket.on('adjust-video-time', (curr) =>{
 // var constraints = { audio: true };
 // navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
 //     var mediaRecorder = new MediaRecorder(mediaStream);
-    
+
 //     mediaRecorder.onstart = function(e) {
 //         this.chunks = [];
 //     };
@@ -58,21 +57,21 @@ socket.on('adjust-video-time', (curr) =>{
 //         var blob = new Blob(this.chunks, { 'type' : 'audio/ogg; codecs=opus' });
 //         socket.emit('radio', blob);
 //     };
-    
-    
-    // Start song
-    window.song_time_interval = '';
-    window.start_song = document.getElementById('start-song');
-    start_song.addEventListener('click', ()=>{
-        socket.emit('i-started-sing', socket.id);
-    });
-    
-    // Stop song
-    window.stop_song = document.getElementById('pause-song');
-    stop_song.addEventListener('click', ()=>{
-        socket.emit('singer-paused-song', socket.id);
-    });
-    
+
+
+// Start song
+window.song_time_interval = '';
+window.start_song = document.getElementById('start-song');
+start_song.addEventListener('click', ()=>{
+    socket.emit('i-started-sing', socket.id);
+});
+
+// Stop song
+window.stop_song = document.getElementById('pause-song');
+stop_song.addEventListener('click', ()=>{
+    socket.emit('singer-paused-song', socket.id);
+});
+
 // });
 
 
@@ -93,7 +92,7 @@ socket.on('allowed-to-sing', ()=>{
             
             //adjust all users video time
             //if(parseInt(window.player.getCurrentTime())%30 == 0) {
-                //socket.emit('adjust-video-time', window.player.getCurrentTime());
+            //socket.emit('adjust-video-time', window.player.getCurrentTime());
             //}
         }
     }, 1000);
@@ -103,10 +102,15 @@ socket.on('singer-not-allowed', ()=>{
     var alert_div = document.getElementById('alert-singer-singing');
     alert_div.innerText = 'ALGUEM ESTA CANTANDO AGORA';
     setTimeout(()=>{alert_div.innerText = ''}, 1500);
-
-    if(player){
+    
+    if(player && player.getPlayerState() == 5){ //video not started
         player.loadVideoById(now_playing_song);
-        setTimeout(()=>{player.playVideo()},2000);
+        setTimeout(()=>{
+            player.playVideo();
+            sync_btn.click();
+        },2000);
+    } else if(player.getPlayerState() == 1){    //video playing
+        sync_btn.click();
     }
 });
 
@@ -114,6 +118,12 @@ socket.on('singer-allowed-pause', ()=>{
     //stop_button.click();
     socket.emit('video-paused');
     clearInterval(song_time_interval);    
+});
+
+socket.on('singer-not-allowed-pause', ()=>{
+    var alert_div = document.getElementById('alert-singer-singing');
+    alert_div.innerText = 'ALGUEM ESTA CANTANDO AGORA';
+    setTimeout(()=>{alert_div.innerText = ''}, 1500);
 });
 
 // When the client receives a voice message it will play the sound
@@ -129,7 +139,7 @@ var add_music_btn = document.getElementById('add-music');
 add_music_btn.addEventListener('click', ()=>{
     var videoId = getVideoId(document.getElementById('video-link').value);
     
-    socket.emit('added-music', videoId);
+    socket.emit('added-music', videoId, socket.id);
 })
 
 
@@ -178,8 +188,8 @@ function onYouTubeIframeAPIReady() {
     var now_playing_song = window.now_playing_song || '3Uj-F8Ff7eU';
     
     player = new YT.Player('player', {
-        height: '160',
-        width: '340',
+        height: '100%',
+        width: '100%',
         videoId: now_playing_song,
         events: {
         }
@@ -219,7 +229,6 @@ socket.on('load-actual-singer', (singer)=>{
     } else {
         document.getElementById('actual-singer').innerText = '';
     }
-
 });
 
 
@@ -234,8 +243,11 @@ function updatePlaylist(){
     
     //insert child
     musics_queue.forEach((item)=>{
+        let headers = new Headers();
+
+        var str = item.user + ' added ' + item.music;
         var mus = document.createElement('p');
-        mus.innerText = item.title || 'User: '+ socket.id + ' added: ' + item;
+        mus.innerText = item.title || str;
         musics_queue_div.appendChild(mus);
     });
 }
@@ -243,7 +255,7 @@ function updatePlaylist(){
 function updateUsersList(users){
     var users_list_div = document.getElementById('users-list');
     users_list_div.innerHTML = '';
-
+    
     for (key in users) {
         // check if the property/key is defined in the object itself, not in parent
         if (users.hasOwnProperty(key)) {           
