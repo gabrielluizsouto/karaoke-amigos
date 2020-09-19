@@ -17,9 +17,10 @@
 
     <script src="/socket.io/socket.io.js"></script>
 
-    <script>
-        const socket = io();
-    </script>
+    <script>const socket = io();</script>
+    
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 </head>
 
 <body>
@@ -34,25 +35,27 @@
         <div class="container">
             
             <div class="row">
-                <p>Entre em uma sala de chat por voz (Meet, Discord, Zoom, etc) com seus amigos e use o 'Karaoke dos Amigos' como seu aparelho de karaokê. </p>
+                <p class='general-info'>Join a voice chat room (Meet, Discord, Zoom, etc) with your friends and use the "Karaoke dos amigos" website as your Video Karaoke player.</p>
             </div>
             <div class="row">
                 <div class="col s12">
-                    <button id="start-song">START Music</button>
-                    <button id="pause-song">PAUSE Music</button>
-                    <button id="next-song">NEXT Music</button><br>
+                    
+                    <a class="waves-effect waves-light btn-large" id="start-song"><i class="material-icons left">play_arrow</i>Sing!</a>
+                    <a class="waves-effect waves-light btn-large" id="pause-song"><i class="material-icons">pause</i></a>
+                    <a class="waves-effect waves-light btn-large" id="next-song"><i class="material-icons left">skip_next</i>Skip</a>
                     <p id='actual-singer'></p>
                     <p id='alert-singer-singing'></p>
                     
                     <div id="msgs"></div>
                     <div id="mic-state"></div>
                     <div id="player-time"></div>
-                    <button id='rewind-1'>Voltar 1s</button>
-                    <button id='forward-1'>Avançar 1s</button><br>
-                    <button id='sync-music'>Sync music</button><br>
                     <div class="video-container">
                         <div id="player"></div>                    
                     </div>
+                    <p class='sync-info'>Is the song out of sync with singer? Use the buttons to sync music and singer</p>
+                    <a class="waves-effect waves-light btn-large" id="rewind-1"><i class="material-icons">fast_rewind</i></a>
+                    <a class="waves-effect waves-light btn-large" id="sync-music"><i class="material-icons left">sync</i>Sync</a>
+                    <a class="waves-effect waves-light btn-large" id="forward-1"><i class="material-icons">fast_forward</i></a>
                 </div>
             </div>
             <div class="row">
@@ -60,7 +63,7 @@
                     <h4>Users Online</h4>
                     <div id="users-online"></div>
                     <div id='users-list'></div>
-                    <button id="change-nick">Change nick</button>                 
+                    <a class="waves-effect waves-light btn" id="change-nick"><i class="material-icons left">person</i>Change nick</a>
                 </div>
                 <div class="col s6">
                     <h4>Musics queue</h4>
@@ -70,7 +73,7 @@
                           <label for="video-link">Youtube video link</label>
                         </div>
                       </div>
-                    <button id="add-music">Add Video</button>
+                    <a class="waves-effect waves-light btn" id="add-music"><i class="material-icons left">playlist_add</i>Add song</a>
                     <h5>Next Songs:</h5>
                     <div id="musics-queue-div">
                         <p></p>

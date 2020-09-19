@@ -1,4 +1,3 @@
-
 socket.on('users-connected', (conectados)=>{
     var users_online = window.document.getElementById('users-online');
     users_online.innerText = "Users online: " + conectados; 
@@ -23,9 +22,9 @@ socket.on('current-video-time', (curr, singer) =>{
     var time = new Date(curr.toFixed(2) * 1000).toISOString().substr(14, 5);
     var who_is_singing;
     if(singer == socket.id) {
-        who_is_singing = 'Você está no tempo: ';
+        who_is_singing = 'You are at time: ';
     } else {
-        who_is_singing = 'O cantor está no tempo: ';
+        who_is_singing = 'The singer is at time: ';
     }
     player_time.innerText = who_is_singing + time;
 });
@@ -81,7 +80,7 @@ socket.on('allowed-to-sing', ()=>{
         player.playVideo();
         socket.emit('video-played');
     }
-    updateActualSinger('Você está cantando');
+    updateActualSinger('YOU are singing now');
     
     song_time_interval = setInterval(function() {
         if(window.player){
@@ -100,7 +99,8 @@ socket.on('allowed-to-sing', ()=>{
 
 socket.on('singer-not-allowed', ()=>{
     var alert_div = document.getElementById('alert-singer-singing');
-    alert_div.innerText = 'ALGUEM ESTA CANTANDO AGORA';
+    alert_div.style.backgroundColor='red'; 
+    alert_div.innerText = 'SOMEONE IS SINGING NOW';
     setTimeout(()=>{alert_div.innerText = ''}, 1500);
     
     if(player && player.getPlayerState() == 5){ //video not started
@@ -122,7 +122,8 @@ socket.on('singer-allowed-pause', ()=>{
 
 socket.on('singer-not-allowed-pause', ()=>{
     var alert_div = document.getElementById('alert-singer-singing');
-    alert_div.innerText = 'ALGUEM ESTA CANTANDO AGORA';
+    alert_div.style.backgroundColor = 'red';
+    alert_div.innerText = 'SOMEONE IS SINGING NOW';
     setTimeout(()=>{alert_div.innerText = ''}, 1500);
 });
 
@@ -137,7 +138,11 @@ socket.on('voice', function(arrayBuffer) {
 
 var add_music_btn = document.getElementById('add-music');
 add_music_btn.addEventListener('click', ()=>{
-    var videoId = getVideoId(document.getElementById('video-link').value);
+    var text_content = document.getElementById('video-link');
+    var video_url = text_content.value;
+    text_content.value = '';
+    var videoId = getVideoId(video_url);
+    
     
     socket.emit('added-music', videoId, socket.id);
 })
